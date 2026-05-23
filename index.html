@@ -24,7 +24,7 @@
             <div class="relative z-10">
                 <span class="bg-white/20 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Gestão de Reservas</span>
                 <h1 class="text-2xl sm:text-3xl font-bold mt-2">Calculadora de Tarifas</h1>
-                <p class="text-blue-100 text-sm mt-1">Garante que recebes exatamente o que planeaste, sem surpresas com as comissões.</p>
+                <p class="text-blue-100 text-sm mt-1">Calcula preços por semana, taxas de ar condicionado por tipologia e reservas diretas.</p>
             </div>
         </div>
 
@@ -39,17 +39,30 @@
         </div>
 
         <div class="p-6 sm:p-8 pt-2">
-            <!-- Alerta de Erro customizado (evita o uso de alert() nativo) -->
+            <!-- Alerta de Erro customizado -->
             <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl text-sm">
                 <span class="font-bold">Aviso:</span> <span id="errorText"></span>
             </div>
 
             <!-- Formulário de Entrada -->
             <div class="space-y-5">
-                <!-- Campo Dinâmico conforme a Aba -->
+                
+                <!-- Toggle de Reserva Direta (Sem comissão) -->
+                <div class="flex items-center justify-between p-3.5 bg-blue-50/40 border border-blue-100/80 rounded-xl">
+                    <div>
+                        <span class="block text-sm font-semibold text-slate-800">Reserva Direta (Agência)</span>
+                        <span class="block text-xs text-slate-500">Sem comissões de plataforma para o cliente</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="isDirectRes" onchange="toggleDirectReservation()" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <!-- Campo de Preço Semanal / Diário -->
                 <div>
                     <label id="inputValLabel" for="inputValue" class="block text-sm font-medium text-slate-700 mb-1.5">
-                        Quanto queres receber limpo por noite?
+                        Preço por Semana Desejado (€)
                     </label>
                     <div class="relative rounded-xl shadow-sm">
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
@@ -59,11 +72,26 @@
                     </div>
                 </div>
 
-                <!-- Campo de Comissão -->
-                <div>
+                <!-- Campo de Tipologia (Ar Condicionado) -->
+                <div id="tipologiaContainer">
+                    <label for="typology" class="block text-sm font-medium text-slate-700 mb-1.5">
+                        Tipologia (Custo do Ar Condicionado Semanal)
+                    </label>
+                    <select id="typology" onchange="calculate()" class="block w-full rounded-xl border-slate-200 border-2 py-3.5 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-base outline-none transition-all bg-white">
+                        <option value="none">Nenhum (0 €)</option>
+                        <option value="apartamento">Apartamento (+30 €/semana)</option>
+                        <option value="v2">V2 (+75 €/semana)</option>
+                        <option value="v3">V3 (+85 €/semana)</option>
+                        <option value="v4">V4 (+100 €/semana)</option>
+                        <option value="v5">V5 (+150 €/semana)</option>
+                    </select>
+                </div>
+
+                <!-- Campo de Comissão da Plataforma -->
+                <div id="commissionContainer">
                     <div class="flex justify-between items-center mb-1.5">
                         <label for="commissionRate" class="block text-sm font-medium text-slate-700">
-                            Comissão da plataforma
+                            Comissão da plataforma (%)
                         </label>
                         <span id="commissionBadge" class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md"></span>
                     </div>
@@ -73,12 +101,8 @@
                             <span class="text-slate-400 font-medium text-base">%</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Botões Rápidos (Presets) -->
-                <div>
-                    <span class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Comissões Comuns</span>
-                    <div class="flex flex-wrap gap-2">
+                    <!-- Botões Rápidos (Presets) -->
+                    <div class="flex flex-wrap gap-2 mt-2">
                         <button onclick="applyPreset(15.5, 'Booking')" class="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 font-medium py-2 px-3 rounded-lg transition-all border border-slate-200/60">
                             Booking (15.5%)
                         </button>
@@ -88,12 +112,6 @@
                         <button onclick="applyPreset(3.0, 'Airbnb')" class="text-xs bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-medium py-2 px-3 rounded-lg transition-all border border-slate-200/60">
                             Airbnb Host (3%)
                         </button>
-                        <button onclick="applyPreset(15.0, 'Airbnb Simplificado')" class="text-xs bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-medium py-2 px-3 rounded-lg transition-all border border-slate-200/60">
-                            Airbnb Total (15%)
-                        </button>
-                        <button onclick="applyPreset(8.0, 'VRBO')" class="text-xs bg-slate-100 hover:bg-teal-50 hover:text-teal-600 text-slate-600 font-medium py-2 px-3 rounded-lg transition-all border border-slate-200/60">
-                            VRBO (8%)
-                        </button>
                     </div>
                 </div>
             </div>
@@ -101,14 +119,17 @@
             <!-- Resultados Dinâmicos -->
             <div id="resultsCard" class="mt-8 bg-slate-50 border border-slate-100 rounded-2xl p-6 transition-all duration-300">
                 <div class="text-center pb-4 border-b border-slate-200/60">
-                    <span id="resultLabel" class="text-sm font-medium text-slate-500">Preço a anunciar na plataforma</span>
+                    <span id="resultLabel" class="text-sm font-medium text-slate-500">Preço Diário a cobrar (por noite)</span>
                     <div id="mainResult" class="text-4xl font-extrabold text-slate-900 mt-1">0,00 €</div>
+                    <div id="weeklyResultLabel" class="text-xs text-slate-500 mt-1.5">
+                        Preço Semanal a anunciar: <strong id="weeklyGrossResult" class="text-slate-800">0,00 €</strong>
+                    </div>
                 </div>
 
                 <!-- Gráfico de Distribuição Simples -->
-                <div class="mt-5">
+                <div id="graphContainer" class="mt-5">
                     <div class="flex justify-between text-xs font-semibold text-slate-500 mb-2">
-                        <span>Distribuição do Valor</span>
+                        <span>Distribuição por Noite</span>
                         <span id="ratioDetail">0% líquido / 0% comissão</span>
                     </div>
                     <!-- Barra de Gráfico -->
@@ -122,15 +143,22 @@
                 <div class="mt-5 space-y-2.5 pt-1">
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-slate-500 flex items-center">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>
-                            Valor Líquido (O que recebes)
+                            <span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                            Custo do AC Incluído (Semanal)
                         </span>
-                        <span id="netValue" class="font-semibold text-slate-800">0,00 €</span>
+                        <span id="acValueDetail" class="font-semibold text-slate-800">0,00 €</span>
                     </div>
                     <div class="flex justify-between items-center text-sm">
                         <span class="text-slate-500 flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>
+                            Preço Líquido do AC + Aluguer (Por Noite)
+                        </span>
+                        <span id="netValue" class="font-semibold text-slate-800">0,00 €</span>
+                    </div>
+                    <div id="commissionDetailRow" class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500 flex items-center">
                             <span class="w-3 h-3 rounded-full bg-rose-500 mr-2"></span>
-                            Comissão Retida (<span id="commLabelDetail">0%</span>)
+                            Comissão Retida pela Plataforma (Por Noite)
                         </span>
                         <span id="commValue" class="font-semibold text-slate-800">0,00 €</span>
                     </div>
@@ -140,15 +168,46 @@
     </div>
 
     <script>
+        // Configuração das Taxas de AC por tipologia
+        const acRates = {
+            'none': 0,
+            'apartamento': 30,
+            'v2': 75,
+            'v3': 85,
+            'v4': 100,
+            'v5': 150
+        };
+
         // Estado da Aplicação
         let activeTab = 'netToGross'; // 'netToGross' (quanto cobrar) ou 'grossToNet' (quanto recebo)
 
         // Inicializar com o teu cenário real
         window.onload = function() {
-            document.getElementById('inputValue').value = "60.71";
+            document.getElementById('inputValue').value = "424.97"; // 60.71 * 7 aprox
             document.getElementById('commissionRate').value = "15.5";
             calculate();
         };
+
+        // Ativa/Desativa o modo de Reserva Direta
+        function toggleDirectReservation() {
+            const isDirect = document.getElementById('isDirectRes').checked;
+            const commissionContainer = document.getElementById('commissionContainer');
+            const commissionDetailRow = document.getElementById('commissionDetailRow');
+            const graphContainer = document.getElementById('graphContainer');
+
+            if (isDirect) {
+                commissionContainer.style.opacity = "0.4";
+                commissionContainer.style.pointerEvents = "none";
+                commissionDetailRow.style.display = "none";
+                graphContainer.style.display = "none";
+            } else {
+                commissionContainer.style.opacity = "1";
+                commissionContainer.style.pointerEvents = "auto";
+                commissionDetailRow.style.display = "flex";
+                graphContainer.style.display = "block";
+            }
+            calculate();
+        }
 
         // Alternar entre abas
         function switchTab(tab) {
@@ -158,19 +217,20 @@
             const btnGrossToNet = document.getElementById('tabGrossToNet');
             const inputValLabel = document.getElementById('inputValLabel');
             const resultLabel = document.getElementById('resultLabel');
+            const tipologiaContainer = document.getElementById('tipologiaContainer');
 
             if (tab === 'netToGross') {
-                // Configuração "Quanto devo cobrar para receber X"
                 btnNetToGross.className = "flex-1 py-3 px-4 text-center text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-blue-600 shadow-sm";
                 btnGrossToNet.className = "flex-1 py-3 px-4 text-center text-sm font-medium rounded-lg transition-all duration-200 text-slate-500 hover:text-slate-800";
-                inputValLabel.innerText = "Quanto queres receber limpo por noite? (€)";
-                resultLabel.innerText = "Preço a anunciar na plataforma";
+                inputValLabel.innerText = "Preço por Semana Desejado (€)";
+                resultLabel.innerText = "Preço Diário a cobrar (por noite)";
+                tipologiaContainer.style.display = "block";
             } else {
-                // Configuração "Se eu anunciar a Y, quanto recebo"
                 btnGrossToNet.className = "flex-1 py-3 px-4 text-center text-sm font-semibold rounded-lg transition-all duration-200 bg-white text-blue-600 shadow-sm";
                 btnNetToGross.className = "flex-1 py-3 px-4 text-center text-sm font-medium rounded-lg transition-all duration-200 text-slate-500 hover:text-slate-800";
-                inputValLabel.innerText = "Preço de venda / anúncio na plataforma? (€)";
-                resultLabel.innerText = "Valor que vai cair na tua conta";
+                inputValLabel.innerText = "Preço Semanal de Venda / Anunciado (€)";
+                resultLabel.innerText = "Valor Diário Líquido que vais receber";
+                tipologiaContainer.style.display = "block";
             }
 
             calculate();
@@ -181,9 +241,7 @@
             document.getElementById('commissionRate').value = rate;
             const badge = document.getElementById('commissionBadge');
             badge.innerText = platformName;
-            badge.classList.remove('hidden');
             
-            // Esconde o badge após 3 segundos
             setTimeout(() => {
                 badge.innerText = "";
             }, 3000);
@@ -195,6 +253,9 @@
         function calculate() {
             const valInput = parseFloat(document.getElementById('inputValue').value);
             const commissionInput = parseFloat(document.getElementById('commissionRate').value);
+            const typologySelect = document.getElementById('typology').value;
+            const isDirect = document.getElementById('isDirectRes').checked;
+            
             const errorDiv = document.getElementById('errorMessage');
             const errorText = document.getElementById('errorText');
 
@@ -207,58 +268,82 @@
                 return;
             }
 
-            if (isNaN(commissionInput) || commissionInput < 0) {
-                resetResults();
-                return;
-            }
+            const currentCommission = isDirect ? 0 : (isNaN(commissionInput) ? 0 : commissionInput);
 
-            if (commissionInput >= 100 && activeTab === 'netToGross') {
-                errorText.innerText = "A comissão não pode ser igual ou superior a 100% para este cálculo.";
+            if (currentCommission >= 100 && activeTab === 'netToGross') {
+                errorText.innerText = "A comissão não pode ser igual ou superior a 100%.";
                 errorDiv.classList.remove('hidden');
                 resetResults();
                 return;
             }
 
-            let grossValue = 0; // Preço anunciado
-            let netValue = 0;   // Preço limpo
-            let commValue = 0;  // Valor da comissão retida em Euros
+            // Custos de Ar Condicionado
+            const acCostWeekly = acRates[typologySelect] || 0;
+            const acCostDaily = acCostWeekly / 7;
+
+            let grossDaily = 0; // Preço diário anunciado
+            let netDaily = 0;   // Preço diário limpo
+            let commDaily = 0;  // Comissão por noite
 
             if (activeTab === 'netToGross') {
-                // Queremos saber o preço final a anunciar
-                // Fórmula inversa: Brut = Liq / (1 - taxa)
-                const factor = 1 - (commissionInput / 100);
-                grossValue = valInput / factor;
-                netValue = valInput;
-                commValue = grossValue - netValue;
+                // Cálculo 1: Quanto cobrar para receber X livre
+                // 1. Somar o custo de AC ao valor semanal
+                const weeklyTargetWithAc = valInput + acCostWeekly;
+                
+                // 2. Dividir por 7 dias para obter o valor líquido diário desejado
+                netDaily = weeklyTargetWithAc / 7;
+                
+                // 3. Aplicar fórmula de comissão inversa para obter preço a anunciar
+                const factor = 1 - (currentCommission / 100);
+                grossDaily = netDaily / factor;
+                commDaily = grossDaily - netDaily;
             } else {
-                // Queremos saber quanto recebemos a partir de um preço bruto de anúncio
-                // Fórmula direta: Liq = Brut * (1 - taxa)
-                grossValue = valInput;
-                commValue = grossValue * (commissionInput / 100);
-                netValue = grossValue - commValue;
+                // Cálculo 2: Quanto vou receber se anunciar a Y
+                // 1. O preço semanal anunciado é dividido por 7
+                grossDaily = valInput / 7;
+                
+                // 2. Calcular a comissão da plataforma por noite
+                commDaily = grossDaily * (currentCommission / 100);
+                
+                // 3. Subtrair comissão e subtrair o custo do AC para ver a margem limpa real do alojamento
+                const totalNetDailyWithAc = grossDaily - commDaily;
+                netDaily = totalNetDailyWithAc; // O líquido recebido por noite
             }
 
-            // Atualização de UI com os resultados
-            const mainResultVal = activeTab === 'netToGross' ? grossValue : netValue;
-            document.getElementById('mainResult').innerText = formatEuro(mainResultVal);
-            document.getElementById('netValue').innerText = formatEuro(netValue);
-            document.getElementById('commValue').innerText = formatEuro(commValue);
-            document.getElementById('commLabelDetail').innerText = commissionInput + "%";
+            // Atualização dos Detalhes de AC e Valores de Interface
+            document.getElementById('acValueDetail').innerText = formatEuro(acCostWeekly);
+            
+            if (isDirect) {
+                // No modo direto, não há comissão e o cliente beneficia de um preço mais baixo
+                document.getElementById('mainResult').innerText = formatEuro(netDaily);
+                document.getElementById('weeklyGrossResult').innerText = formatEuro(netDaily * 7);
+                document.getElementById('netValue').innerText = formatEuro(netDaily);
+                document.getElementById('commValue').innerText = formatEuro(0);
+            } else {
+                const mainResultVal = activeTab === 'netToGross' ? grossDaily : netDaily;
+                document.getElementById('mainResult').innerText = formatEuro(mainResultVal);
+                document.getElementById('weeklyGrossResult').innerText = formatEuro(grossDaily * 7);
+                document.getElementById('netValue').innerText = formatEuro(netDaily);
+                document.getElementById('commValue').innerText = formatEuro(commDaily);
+            }
 
-            // Atualização da barra de rácio
-            const netPercent = (netValue / grossValue) * 100;
-            const commPercent = (commValue / grossValue) * 100;
+            // Atualização da barra de rácio (se houver comissão ativa)
+            if (!isDirect && grossDaily > 0) {
+                const netPercent = (netDaily / grossDaily) * 100;
+                const commPercent = (commDaily / grossDaily) * 100;
 
-            document.getElementById('netBar').style.width = netPercent + "%";
-            document.getElementById('commissionBar').style.width = commPercent + "%";
-            document.getElementById('ratioDetail').innerText = `${netPercent.toFixed(0)}% líquido / ${commPercent.toFixed(0)}% comissão`;
+                document.getElementById('netBar').style.width = netPercent + "%";
+                document.getElementById('commissionBar').style.width = commPercent + "%";
+                document.getElementById('ratioDetail').innerText = `${netPercent.toFixed(0)}% líquido / ${commPercent.toFixed(0)}% comissão`;
+            }
         }
 
         function resetResults() {
             document.getElementById('mainResult').innerText = "0,00 €";
+            document.getElementById('weeklyGrossResult').innerText = "0,00 €";
             document.getElementById('netValue').innerText = "0,00 €";
             document.getElementById('commValue').innerText = "0,00 €";
-            document.getElementById('commLabelDetail').innerText = "0%";
+            document.getElementById('acValueDetail').innerText = "0,00 €";
             document.getElementById('netBar').style.width = "50%";
             document.getElementById('commissionBar').style.width = "50%";
             document.getElementById('ratioDetail').innerText = "0% líquido / 0% comissão";
